@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from "../api";
 import Card from './Card';
 
 export default function ContentPanel({ activeCategory }) {
@@ -9,7 +10,7 @@ export default function ContentPanel({ activeCategory }) {
     if (!activeCategory) return;
     const fetchCards = async () => {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/cards/${activeCategory}`, {
+  const res = await fetch(`${API_BASE_URL}/api/cards/${activeCategory}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -22,7 +23,7 @@ export default function ContentPanel({ activeCategory }) {
     e.preventDefault();
     if (!newCardTitle.trim()) return;
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/api/cards/${activeCategory}`, {
+  const res = await fetch(`${API_BASE_URL}/api/cards/${activeCategory}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ title: newCardTitle }),

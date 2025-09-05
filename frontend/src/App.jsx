@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from "./api";
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
@@ -11,7 +12,7 @@ function App() {
   React.useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && !user) {
-      fetch('http://localhost:5000/api/auth/me', {
+  fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => res.ok ? res.json() : null)

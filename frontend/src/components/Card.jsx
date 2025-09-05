@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from "../api";
 
 export default function Card({ card, setCards, cards }) {
   const [resources, setResources] = useState(card.resources || []);
@@ -10,7 +11,7 @@ export default function Card({ card, setCards, cards }) {
     e.preventDefault();
     if (!newResource.content.trim()) return;
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/api/cards/${card._id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ resources: [...resources, newResource] }),
@@ -28,7 +29,7 @@ export default function Card({ card, setCards, cards }) {
           <form className="flex w-full" onSubmit={async e => {
             e.preventDefault();
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:5000/api/cards/${card._id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
               body: JSON.stringify({ title: titleValue, resources }),
@@ -48,7 +49,7 @@ export default function Card({ card, setCards, cards }) {
             <button className="ml-2 text-yellow-600" onClick={() => setEditTitle(true)}>✏️</button>
             <button className="ml-2 text-red-600" onClick={async () => {
               const token = localStorage.getItem('token');
-              const res = await fetch(`http://localhost:5000/api/cards/${card._id}`, {
+              const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
               });
@@ -80,7 +81,7 @@ export default function Card({ card, setCards, cards }) {
                   setResources(updated);
                   // Update on server
                   const token = localStorage.getItem('token');
-                  fetch(`http://localhost:5000/api/cards/${card._id}`, {
+                  fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({ resources: updated, title: titleValue }),
@@ -93,7 +94,7 @@ export default function Card({ card, setCards, cards }) {
                 setResources(updated);
                 // Update on server
                 const token = localStorage.getItem('token');
-                fetch(`http://localhost:5000/api/cards/${card._id}`, {
+                fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                   body: JSON.stringify({ resources: updated, title: titleValue }),

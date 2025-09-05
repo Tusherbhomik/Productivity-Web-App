@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from "../api";
 
 export default function Sidebar({ categories, setCategories, activeCategory, setActiveCategory }) {
   const [expanded, setExpanded] = useState(true);
@@ -10,7 +11,7 @@ export default function Sidebar({ categories, setCategories, activeCategory, set
     e.preventDefault();
     if (!newCategory.trim()) return;
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:5000/api/categories', {
+  const res = await fetch(`${API_BASE_URL}/api/categories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ name: newCategory }),
@@ -37,7 +38,7 @@ export default function Sidebar({ categories, setCategories, activeCategory, set
                 e.preventDefault();
                 // Update category name
                 const token = localStorage.getItem('token');
-                const res = await fetch(`http://localhost:5000/api/categories/${cat._id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/categories/${cat._id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                   body: JSON.stringify({ name: editCategoryName }),
@@ -63,7 +64,7 @@ export default function Sidebar({ categories, setCategories, activeCategory, set
                   <button className="text-yellow-600" onClick={() => { setEditCategoryId(cat._id); setEditCategoryName(cat.name); }}>✏️</button>
                   <button className="text-red-600" onClick={async () => {
                     const token = localStorage.getItem('token');
-                    const res = await fetch(`http://localhost:5000/api/categories/${cat._id}`, {
+                    const res = await fetch(`${API_BASE_URL}/api/categories/${cat._id}`, {
                       method: 'DELETE',
                       headers: { Authorization: `Bearer ${token}` },
                     });

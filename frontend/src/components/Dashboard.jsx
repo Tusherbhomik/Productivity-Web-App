@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from "../api";
 import Sidebar from './Sidebar';
 import ContentPanel from './ContentPanel';
 
@@ -9,7 +10,7 @@ export default function Dashboard({ user, setUser }) {
   useEffect(() => {
     const fetchCategories = async () => {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/categories', {
+  const res = await fetch(`${API_BASE_URL}/api/categories`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
