@@ -3,35 +3,75 @@ import { API_BASE_URL } from "../api";
 
 export default function Card({ card, setCards, cards }) {
   const [resources, setResources] = useState(card.resources || []);
-  // Debug: log resources to inspect data structure
-  React.useEffect(() => {
-    console.log('Card resources:', resources);
-  }, [resources]);
   const [editTitle, setEditTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(card.title);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [addType, setAddType] = useState(null); // 'link' or 'note'
-  const [newLink, setNewLink] = useState({ title: '', url: '' });
-  const [newNote, setNewNote] = useState({ title: '', content: '' });
+  const [addType, setAddType] = useState(null);
+  const [newLink, setNewLink] = useState({ title: '', description: '', url: '' });
+  const [linkError, setLinkError] = useState('');
+  const [newNote, setNewNote] = useState({ title: '', description: '', content: '' });
 
-  // Add Link
+  // Add Link - FIXED VERSION with debugging
   const handleAddLink = async (e) => {
     e.preventDefault();
-    if (!newLink.title.trim() || !newLink.url.trim()) return;
+    if (!newLink.title.trim()) {
+      setLinkError('Title is required.');
+      return;
+    }
+    if (!newLink.url.trim()) {
+      setLinkError('URL is required.');
+      return;
+    }
+    setLinkError('');
+    
     const token = localStorage.getItem('token');
-    // Save as { type: 'link', content: url, title }
-    const newResource = { type: 'link', title: newLink.title, content: newLink.url };
-    const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ resources: [...resources, newResource] }),
-    });
-    const data = await res.json();
-    setResources(data.resources);
-    setCards(cards.map(c => c._id === card._id ? data : c));
-    setNewLink({ title: '', url: '' });
-    setShowAddMenu(false);
-    setAddType(null);
+    
+    // Create new resource with title and description in content field
+    const newResource = { 
+      type: 'link',
+      title: newLink.title.trim(),
+      content: JSON.stringify({
+        url: newLink.url.trim(),
+        title: newLink.title.trim(),
+        description: newLink.description.trim()
+      })
+    };
+    
+    // Debug: Log what we're sending
+    console.log('Adding resource:', newResource);
+    console.log('Current resources:', resources);
+    
+    const updatedResources = [...resources, newResource];
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          title: card.title,
+          resources: updatedResources 
+        }),
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log('Server response:', data);
+      
+      setResources(data.resources);
+      setCards(cards.map(c => c._id === card._id ? data : c));
+      setNewLink({ title: '', description: '', url: '' });
+      setShowAddMenu(false);
+      setAddType(null);
+    } catch (error) {
+      console.error('Error adding link:', error);
+      setLinkError('Failed to add link. Please try again.');
+    }
   };
 
   // Add Note
@@ -39,23 +79,40 @@ export default function Card({ card, setCards, cards }) {
     e.preventDefault();
     if (!newNote.title.trim() || !newNote.content.trim()) return;
     const token = localStorage.getItem('token');
-    const newResource = { type: 'note', title: newNote.title, content: newNote.content };
-    const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ resources: [...resources, newResource] }),
-    });
-    const data = await res.json();
-    setResources(data.resources);
-    setCards(cards.map(c => c._id === card._id ? data : c));
-    setNewNote({ title: '', content: '' });
-    setShowAddMenu(false);
-    setAddType(null);
+    
+    // Create new resource with title, description and content in JSON format
+    const newResource = { 
+      type: 'note', 
+      content: JSON.stringify({
+        title: newNote.title.trim(),
+        description: newNote.description.trim(),
+        content: newNote.content.trim()
+      })
+    };
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ 
+          title: card.title,
+          resources: [...resources, newResource] 
+        }),
+      });
+      const data = await res.json();
+      setResources(data.resources);
+      setCards(cards.map(c => c._id === card._id ? data : c));
+      setNewNote({ title: '', description: '', content: '' });
+      setShowAddMenu(false);
+      setAddType(null);
+    } catch (error) {
+      console.error('Error adding note:', error);
+    }
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md transition-shadow duration-200 flex flex-col w-full overflow-hidden border border-blue-100">
-      {/* Header */}
+      {/* Header (No change) */}
       <div className="flex items-center justify-between px-3 py-2 bg-blue-100 border-b border-blue-200">
         {editTitle ? (
           <form className="flex w-full" onSubmit={async e => {
@@ -102,68 +159,78 @@ export default function Card({ card, setCards, cards }) {
       <div className="px-3 py-2 space-y-2">
         {resources.map((r, i) => (
           <div key={i} className="bg-gray-50 rounded px-2 py-1 flex flex-col text-xs">
-            {/* Link */}
+            {/* LINK AND NOTE RENDERING - SIMPLIFIED AND CORRECTED */}
+            
             {r.type === 'link' && (
               <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-xs">{r.title}</span>
-                  {/* Render links array if present, else render content as link */}
-                  {Array.isArray(r.links) && r.links.length > 0 ? (
-                    <div className="flex flex-col gap-1 mt-1">
-                      {/* Show resource title above the links */}
-                      {r.title && (
-                        <span className="font-semibold text-xs mb-1">{r.title}</span>
-                      )}
-                      {r.links.filter(l => l.trim()).map((link, idx) => (
+                <div className="flex flex-col flex-1">
+                  {(() => {
+                    try {
+                      const linkData = JSON.parse(r.content);
+                      return (
+                        <>
+                          <span className="font-semibold text-sm text-blue-800">{linkData.title}</span>
+                          {linkData.description && (
+                            <span className="text-xs text-gray-600">{linkData.description}</span>
+                          )}
+                          <a
+                            href={linkData.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 underline text-xs font-normal mt-1 break-all"
+                            title={linkData.url}
+                          >
+                            {(() => {
+                              try {
+                                const url = new URL(linkData.url);
+                                return url.hostname;
+                              } catch {
+                                return linkData.url;
+                              }
+                            })()}
+                          </a>
+                        </>
+                      );
+                    } catch {
+                      // Fallback for old format
+                      return (
                         <a
-                          key={idx}
-                          href={link}
+                          href={r.content}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-700 underline text-xs font-normal"
-                          title={link}
+                          className="text-blue-700 underline text-xs font-normal break-all"
+                          title={r.content}
                         >
-                          {(() => {
-                            try {
-                              const url = new URL(link);
-                              return url.hostname;
-                            } catch {
-                              return link;
-                            }
-                          })()}
+                          {r.content}
                         </a>
-                      ))}
-                    </div>
-                  ) : r.content ? (
-                    <a
-                      href={r.content}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-700 underline text-xs font-normal mt-1"
-                      title={r.content}
-                    >
-                      {(() => {
-                        try {
-                          const url = new URL(r.content);
-                          return url.hostname;
-                        } catch {
-                          return r.content;
-                        }
-                      })()}
-                    </a>
-                  ) : null}
+                      );
+                    }
+                  })()}
                 </div>
                 <div className="flex gap-1">
                   <button
                     className="text-yellow-600 hover:text-yellow-700"
                     title="Edit Link"
                     onClick={async () => {
-                      const newTitle = prompt('Edit link title:', r.title || '');
-                      const newUrl = prompt('Edit link URL:', r.content || (Array.isArray(r.links) && r.links[0]) || '');
-                      if (newTitle !== null && newUrl !== null) {
-                        const updated = resources.map((res, idx) => idx === i ? { ...res, title: newTitle, content: newUrl } : res);
+                      let oldData = { url: r.content, title: '', description: '' };
+                      try {
+                        oldData = JSON.parse(r.content);
+                      } catch {}
+                      
+                      const newTitle = prompt('Edit link title:', oldData.title || '');
+                      const newDescription = prompt('Edit link description:', oldData.description || '');
+                      const newUrl = prompt('Edit link URL:', oldData.url || r.content);
+                      
+                      if (newTitle !== null && newDescription !== null && newUrl !== null) {
+                        const updated = resources.map((res, idx) => idx === i ? {
+                          ...res,
+                          content: JSON.stringify({
+                            url: newUrl.trim(),
+                            title: newTitle.trim(),
+                            description: newDescription.trim()
+                          })
+                        } : res);
                         setResources(updated);
-                        // Update on server
                         const token = localStorage.getItem('token');
                         await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                           method: 'PUT',
@@ -180,7 +247,6 @@ export default function Card({ card, setCards, cards }) {
                     onClick={async () => {
                       const updated = resources.filter((_, idx) => idx !== i);
                       setResources(updated);
-                      // Update on server
                       const token = localStorage.getItem('token');
                       await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                         method: 'PUT',
@@ -193,24 +259,61 @@ export default function Card({ card, setCards, cards }) {
                 </div>
               </div>
             )}
-            {/* Note */}
+            
             {r.type === 'note' && (
               <div className="flex items-center justify-between">
                 <div className="flex flex-col w-full">
-                  <span className="font-semibold text-xs">{r.title || 'Note'}</span>
-                  <div className="text-xs text-gray-700 max-h-24 overflow-y-auto whitespace-pre-line">{r.content}</div>
+                  {(() => {
+                    try {
+                      const noteData = JSON.parse(r.content);
+                      return (
+                        <>
+                          <span className="font-semibold text-sm text-gray-800">{noteData.title || 'Note'}</span>
+                          {noteData.description && (
+                            <span className="text-xs text-gray-600">{noteData.description}</span>
+                          )}
+                          <div className="text-xs text-gray-700 max-h-24 overflow-y-auto whitespace-pre-line mt-1">
+                            {noteData.content}
+                          </div>
+                        </>
+                      );
+                    } catch {
+                      // Fallback for old format
+                      return (
+                        <>
+                          <span className="font-semibold text-sm text-gray-800">{r.title || 'Note'}</span>
+                          <div className="text-xs text-gray-700 max-h-24 overflow-y-auto whitespace-pre-line mt-1">
+                            {r.content}
+                          </div>
+                        </>
+                      );
+                    }
+                  })()}
                 </div>
                 <div className="flex gap-1">
                   <button
                     className="text-yellow-600 hover:text-yellow-700"
                     title="Edit Note"
                     onClick={async () => {
-                      const newTitle = prompt('Edit note title:', r.title || '');
-                      const newContent = prompt('Edit note content:', r.content || '');
-                      if (newTitle !== null && newContent !== null) {
-                        const updated = resources.map((res, idx) => idx === i ? { ...res, title: newTitle, content: newContent } : res);
+                      let oldData = { content: r.content, title: r.title || '', description: '' };
+                      try {
+                        oldData = JSON.parse(r.content);
+                      } catch {}
+
+                      const newTitle = prompt('Edit note title:', oldData.title || '');
+                      const newDescription = prompt('Edit note description:', oldData.description || '');
+                      const newContent = prompt('Edit note content:', oldData.content || '');
+                      
+                      if (newTitle !== null && newDescription !== null && newContent !== null) {
+                        const updated = resources.map((res, idx) => idx === i ? {
+                          ...res,
+                          content: JSON.stringify({
+                            title: newTitle.trim(),
+                            description: newDescription.trim(),
+                            content: newContent.trim()
+                          })
+                        } : res);
                         setResources(updated);
-                        // Update on server
                         const token = localStorage.getItem('token');
                         await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                           method: 'PUT',
@@ -227,7 +330,6 @@ export default function Card({ card, setCards, cards }) {
                     onClick={async () => {
                       const updated = resources.filter((_, idx) => idx !== i);
                       setResources(updated);
-                      // Update on server
                       const token = localStorage.getItem('token');
                       await fetch(`${API_BASE_URL}/api/cards/${card._id}`, {
                         method: 'PUT',
@@ -240,7 +342,7 @@ export default function Card({ card, setCards, cards }) {
                 </div>
               </div>
             )}
-            {/* Image */}
+            {/* Image (No change) */}
             {r.type === 'image' && r.content && (
               <div className="flex items-center justify-between">
                 <img src={r.content} alt="resource" className="max-h-16 max-w-full rounded border mt-1" />
@@ -253,7 +355,7 @@ export default function Card({ card, setCards, cards }) {
           </div>
         ))}
       </div>
-      {/* Footer: Add Resource Button */}
+      {/* Footer (No change) */}
       <div className="px-3 py-2 bg-gray-100 flex flex-col items-center">
         {!showAddMenu ? (
           <button
@@ -272,11 +374,13 @@ export default function Card({ card, setCards, cards }) {
             {/* Add Link Form */}
             {addType === 'link' && (
               <form className="mt-2 flex flex-col gap-1" onSubmit={handleAddLink}>
-                <input className="border rounded p-1 text-xs" type="text" placeholder="Link Title" value={newLink.title} onChange={e => setNewLink({ ...newLink, title: e.target.value })} />
-                <input className="border rounded p-1 text-xs" type="url" placeholder="URL" value={newLink.url} onChange={e => setNewLink({ ...newLink, url: e.target.value })} />
+                <input className="border rounded p-1 text-xs" type="text" placeholder="Link Title (required)" value={newLink.title} onChange={e => setNewLink({ ...newLink, title: e.target.value })} />
+                <input className="border rounded p-1 text-xs" type="text" placeholder="Description" value={newLink.description} onChange={e => setNewLink({ ...newLink, description: e.target.value })} />
+                <input className="border rounded p-1 text-xs" type="url" placeholder="URL (required)" value={newLink.url} onChange={e => setNewLink({ ...newLink, url: e.target.value })} />
+                {linkError && <div className="text-xs text-red-600 mt-1">{linkError}</div>}
                 <div className="flex gap-1 mt-1">
                   <button className="bg-blue-500 text-white px-2 py-1 rounded font-semibold text-xs hover:bg-blue-600" type="submit">Add Link</button>
-                  <button className="text-gray-500 underline text-xs" type="button" onClick={() => { setAddType(null); setNewLink({ title: '', url: '' }); }}>Cancel</button>
+                  <button className="text-gray-500 underline text-xs" type="button" onClick={() => { setAddType(null); setNewLink({ title: '', url: '', description: '' }); setLinkError(''); }}>Cancel</button>
                 </div>
               </form>
             )}
@@ -284,10 +388,11 @@ export default function Card({ card, setCards, cards }) {
             {addType === 'note' && (
               <form className="mt-2 flex flex-col gap-1" onSubmit={handleAddNote}>
                 <input className="border rounded p-1 text-xs" type="text" placeholder="Note Title" value={newNote.title} onChange={e => setNewNote({ ...newNote, title: e.target.value })} />
+                <input className="border rounded p-1 text-xs" type="text" placeholder="Description" value={newNote.description} onChange={e => setNewNote({ ...newNote, description: e.target.value })} />
                 <textarea className="border rounded p-1 text-xs min-h-[40px]" placeholder="Note Content" value={newNote.content} onChange={e => setNewNote({ ...newNote, content: e.target.value })} />
                 <div className="flex gap-1 mt-1">
                   <button className="bg-green-500 text-white px-2 py-1 rounded font-semibold text-xs hover:bg-green-600" type="submit">Add Note</button>
-                  <button className="text-gray-500 underline text-xs" type="button" onClick={() => { setAddType(null); setNewNote({ title: '', content: '' }); }}>Cancel</button>
+                  <button className="text-gray-500 underline text-xs" type="button" onClick={() => { setAddType(null); setNewNote({ title: '', description: '', content: '' }); }}>Cancel</button>
                 </div>
               </form>
             )}
