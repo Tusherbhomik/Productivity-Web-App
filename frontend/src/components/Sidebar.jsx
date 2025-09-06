@@ -22,9 +22,9 @@ export default function Sidebar({ categories, setCategories, activeCategory, set
   };
 
   return (
-    <aside className="bg-white shadow h-full w-64 flex flex-col">
+    <aside className="bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300 shadow-lg h-full w-64 flex flex-col border-r border-blue-300">
       <div className="flex items-center justify-between p-4 border-b">
-        <span className="font-bold">Categories</span>
+  <span className="font-bold text-blue-900 text-lg tracking-wide">Categories</span>
       </div>
       <form className="p-4" onSubmit={handleAddCategory}>
         <input className="w-full p-2 border rounded mb-2" type="text" placeholder="Add category" value={newCategory} onChange={e => setNewCategory(e.target.value)} />

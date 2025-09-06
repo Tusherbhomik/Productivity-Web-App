@@ -36,12 +36,12 @@ export default function ContentPanel({ activeCategory }) {
   // TODO: Add drag-and-drop reordering logic
 
   return (
-    <div className="p-6">
+    <div className="flex-1 p-8 bg-blue-50 min-h-screen">
       <form className="mb-4" onSubmit={handleAddCard}>
-        <input className="p-2 border rounded mr-2" type="text" placeholder="Add card" value={newCardTitle} onChange={e => setNewCardTitle(e.target.value)} />
+        <input className="p-2 border rounded mr-2 w-2/3" type="text" placeholder="Add card" value={newCardTitle} onChange={e => setNewCardTitle(e.target.value)} />
         <button className="bg-blue-500 text-white py-2 px-4 rounded" type="submit">Add Card</button>
       </form>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-8">
         {cards.map(card => (
           <Card key={card._id} card={card} setCards={setCards} cards={cards} />
         ))}
