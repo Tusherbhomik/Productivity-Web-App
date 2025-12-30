@@ -9,6 +9,18 @@ This app helps you organize important resources, save links for later, and jot d
 
 ---
 
+## 📸 Interface Preview
+
+Here is a glimpse of the dashboard where you can organize tasks by category, such as tracking coding problems or vocabulary.
+
+![Dashboard Main Interface](Basic_interface.png)
+*Organize your tasks and links efficiently.*
+
+![Vocabulary Tracker](Basic_interface2.png)
+*Expand cards to see detailed notes, definitions, and examples.*
+
+---
+
 ## ✨ Features
 
 - 📑 Save and manage your notes
